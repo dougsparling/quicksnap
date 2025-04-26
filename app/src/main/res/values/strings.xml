@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">QuickSnap</string>
+    <string name="back">Back</string>
+    <string name="front">Front</string>
 </resources>
