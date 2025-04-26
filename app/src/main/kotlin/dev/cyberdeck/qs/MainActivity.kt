@@ -10,6 +10,6 @@ class MainActivity : AppCompatActivity() {
 
         val serviceIntent = Intent(this, CameraService::class.java)
         startForegroundService(serviceIntent)
-//        finish()
+        finish()
     }
 }
