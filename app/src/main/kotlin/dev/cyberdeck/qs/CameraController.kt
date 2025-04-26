@@ -1,7 +1,11 @@
 package dev.cyberdeck.qs
 
 import android.content.Context
+import android.os.CombinedVibration
+import android.os.VibrationEffect
+import android.os.VibratorManager
 import android.util.Log
+import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -26,6 +30,7 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 import kotlin.coroutines.suspendCoroutine
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.seconds
 
 class CameraController(
     private val context: Context,
@@ -33,10 +38,10 @@ class CameraController(
 ) {
     private val executor = Executors.newSingleThreadExecutor()
     private val scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
-
+    private val vibrator = context.getSystemService(VibratorManager::class.java)
     private var captureJob: Job? = null
 
-    fun capture(selector: CameraSelector, delay: Duration, count: Int) {
+    fun capture(spec: CaptureSpec) {
         captureJob?.cancel()
         captureJob = scope.launchAsLifecycle { lifecycle ->
             val createProvider = async { createCameraProvider() }
@@ -44,14 +49,25 @@ class CameraController(
             val provider = createProvider.await()
             val capture = quickJpgCapture()
             withContext(Dispatchers.Main) {
-                provider.bindToLifecycle(lifecycle, selector, capture)
+                provider.bindToLifecycle(lifecycle, spec.camera, capture)
             }
 
-            delay(delay)
-            val output = outputFileWithTs()
-            val res = capture.takePicture(output)
-            Log.i("CameraController", "Photo capture succeeded (${output.file?.absolutePath}: $res")
+            repeat(spec.count) { i ->
+                delay(if(i == 0) { spec.delay } else { 1.seconds })
+                val output = outputFileWithTs()
+                val res = capture.takePicture(output)
+                onCaptured()
+                Log.i(
+                    "CameraController",
+                    "Photo capture succeeded (${output.file?.absolutePath}: $res"
+                )
+            }
         }
+    }
+
+    private fun onCaptured() {
+        val effect = VibrationEffect.createOneShot(50, VibrationEffect.EFFECT_TICK)
+        vibrator.vibrate(CombinedVibration.createParallel(effect))
     }
 
     private fun quickJpgCapture() = ImageCapture.Builder()
@@ -86,8 +102,16 @@ class CameraController(
             }
         })
     }
-}
 
+    data class CaptureSpec(
+        val label: String,
+        @DrawableRes val icon: Int,
+        val delay: Duration,
+        val count: Int,
+        val camera: CameraSelector,
+        val record: Boolean = false
+    )
+}
 
 private fun CoroutineScope.launchAsLifecycle(block: suspend CoroutineScope.(LifecycleOwner) -> Unit): Job {
     val lifecycle = CustomLifecycle()
