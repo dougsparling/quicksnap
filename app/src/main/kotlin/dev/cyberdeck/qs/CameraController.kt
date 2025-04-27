@@ -85,7 +85,7 @@ class CameraController(
     private suspend fun capturePhoto(
         spec: PhotoSpec,
         capture: ImageCapture
-    ) = repeat(spec.count) { i ->
+    ) = repeat(spec.count) {
         val file = outputFileWithTs(ext = "jpg")
         val output = ImageCapture.OutputFileOptions
             .Builder(file)
@@ -124,7 +124,7 @@ class CameraController(
                         delay(spec.duration)
                         debug("calling stop()")
                         recorder.stop()
-                        buzz(50, 100)
+                        buzz(100, 150)
                     }
                 }
 
@@ -206,27 +206,21 @@ class CameraController(
     }
 
     sealed class CaptureSpec(
-        val label: String,
-        val icon: Int,
         val delay: Duration,
         val camera: CameraSelector
     )
 
     class PhotoSpec(
-        label: String,
-        @DrawableRes icon: Int,
         delay: Duration,
         val count: Int,
         camera: CameraSelector,
-    ) : CaptureSpec(label, icon, delay, camera)
+    ) : CaptureSpec(delay, camera)
 
     class VideoSpec(
-        label: String,
-        @DrawableRes icon: Int,
         delay: Duration,
         val duration: Duration,
         camera: CameraSelector,
-    ) : CaptureSpec(label, icon, delay, camera)
+    ) : CaptureSpec(delay, camera)
 }
 
 
