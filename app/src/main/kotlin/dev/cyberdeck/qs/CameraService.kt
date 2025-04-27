@@ -12,10 +12,13 @@ import android.graphics.drawable.Icon
 import android.os.Environment
 import android.os.IBinder
 import android.util.Log
-import androidx.camera.core.CameraSelector
+import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
+import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleService
 import dev.cyberdeck.qs.CameraController.CaptureSpec
+import dev.cyberdeck.qs.CameraController.PhotoSpec
+import dev.cyberdeck.qs.CameraController.VideoSpec
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
@@ -27,11 +30,11 @@ class CameraService : LifecycleService() {
         const val ACTION_SPEC_NAME = "ACTION_SPEC"
 
         val SPECS = listOf(
-            CaptureSpec("BR", android.R.drawable.ic_media_play, 1.seconds, 1, CameraSelector.DEFAULT_BACK_CAMERA, record = true),
-            CaptureSpec("B3", android.R.drawable.ic_media_rew, 3.seconds, 3, CameraSelector.DEFAULT_BACK_CAMERA),
-            CaptureSpec("B1", android.R.drawable.ic_media_previous, 3.seconds, 1, CameraSelector.DEFAULT_BACK_CAMERA),
-            CaptureSpec("F1", android.R.drawable.ic_media_next, 3.seconds, 1, CameraSelector.DEFAULT_FRONT_CAMERA),
-            CaptureSpec("F3", android.R.drawable.ic_media_ff, 3.seconds, 3, CameraSelector.DEFAULT_FRONT_CAMERA),
+            VideoSpec("BR", android.R.drawable.ic_media_play, 2.seconds, 5.seconds, DEFAULT_BACK_CAMERA),
+            PhotoSpec("B3", android.R.drawable.ic_media_rew, 3.seconds, 3, DEFAULT_BACK_CAMERA),
+            PhotoSpec("B1", android.R.drawable.ic_media_previous, 3.seconds, 1, DEFAULT_BACK_CAMERA),
+            PhotoSpec("F1", android.R.drawable.ic_media_next, 3.seconds, 1, DEFAULT_FRONT_CAMERA),
+            PhotoSpec("F3", android.R.drawable.ic_media_ff, 3.seconds, 3, DEFAULT_FRONT_CAMERA),
         )
     }
 

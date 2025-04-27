@@ -45,6 +45,7 @@ dependencies {
     implementation(libs.androidx.camera.lifecycle)
     implementation(libs.androidx.camera.viewfinder)
     implementation(libs.androidx.lifecycle.service)
+    implementation(libs.androidx.camera.video)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
