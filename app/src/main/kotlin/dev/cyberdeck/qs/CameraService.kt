@@ -11,7 +11,6 @@ import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
 import android.graphics.drawable.Icon
 import android.os.Environment
 import android.os.IBinder
-import android.util.Log
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
 import androidx.core.app.ActivityCompat
@@ -57,13 +56,13 @@ class CameraService : LifecycleService() {
     }
 
     private fun onStartCapture(spec: CaptureSpec) {
-        Log.d("CameraService", "onStartCapture: $spec")
+        debug("$spec")
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.CAMERA)
             == PackageManager.PERMISSION_GRANTED
         ) {
             cameraController.capture(spec)
         } else {
-            Log.e("CameraService", "Camera permission not granted")
+            debug("Camera permission not granted")
         }
     }
 
@@ -73,7 +72,7 @@ class CameraService : LifecycleService() {
         ), albumName
     ).also {
         if (!it.mkdirs()) {
-            Log.e("CameraService", "Directory not created")
+            debug("Directory not created")
         }
     }
 

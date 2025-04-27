@@ -4,7 +4,6 @@ import android.content.Context
 import android.os.CombinedVibration
 import android.os.VibrationEffect
 import android.os.VibratorManager
-import android.util.Log
 import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
@@ -93,11 +92,8 @@ class CameraController(
             .build()
 
         capture.takePicture(output)
-        buzz(50)
-        Log.i(
-            "CameraController",
-            "Photo capture succeeded (${file.absolutePath}"
-        )
+        buzz(150)
+        debug("Photo capture succeeded (${file.absolutePath}")
         delay(1.seconds)
     }
 
@@ -120,28 +116,20 @@ class CameraController(
         for (event in events) {
             when (event) {
                 is VideoRecordEvent.Status -> {
-                    val millis =
-                        event.recordingStats.recordedDurationNanos.nanoseconds.inWholeMilliseconds
-                    Log.i(
-                        "CameraController",
-                        "Recorded ${event.recordingStats.numBytesRecorded} bytes over $millis millis"
-                    )
+                    debug("Recorded ${event.recordingStats.numBytesRecorded} bytes over ${event.recordingStats.recordedDurationNanos.nanoseconds.inWholeMilliseconds} millis")
                 }
 
                 is Start -> {
                     stop = stop ?: launch {
                         delay(spec.duration)
-                        Log.i("CameraController", "Stopping")
+                        debug("calling stop()")
                         recorder.stop()
                         buzz(50, 100)
                     }
                 }
 
                 is Finalize -> {
-                    Log.i(
-                        "CameraController",
-                        "Stopping: error = ${event.error}, cause ${event.cause}"
-                    )
+                    debug("Finalize (stopped): error = ${event.error}, cause ${event.cause}")
                 }
             }
         }
@@ -149,7 +137,7 @@ class CameraController(
         // just in case we stopped early
         stop?.cancel()
 
-        Log.i("CameraController", "Recorded video to ${file.absolutePath}")
+        debug("Recorded video to ${file.absolutePath}")
     }
 
     private fun quickJpgCapture() = ImageCapture.Builder()
@@ -172,8 +160,8 @@ class CameraController(
     )
 
     private fun outputFileWithTs(ext: String): File {
-        val name =
-            SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US).format(System.currentTimeMillis())
+        val name = SimpleDateFormat("yyyyMMdd_HHmmss_SSS", Locale.US)
+            .format(System.currentTimeMillis())
         return File(directory, "$name.$ext")
     }
 
