@@ -1,6 +1,7 @@
-package dev.cyberdeck.qs
+package dev.cyberdeck.qs.camera
 
 import android.Manifest
+import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,44 +17,46 @@ import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleService
-import dev.cyberdeck.qs.CameraController.CaptureSpec
-import dev.cyberdeck.qs.CameraController.PhotoSpec
-import dev.cyberdeck.qs.CameraController.VideoSpec
+import dev.cyberdeck.qs.camera.CameraController.CaptureSpec
+import dev.cyberdeck.qs.camera.CameraController.PhotoSpec
+import dev.cyberdeck.qs.camera.CameraController.VideoSpec
+import dev.cyberdeck.qs.common.debug
+import dev.cyberdeck.qs.common.prepStorageDir
 import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
-class CameraService : LifecycleService() {
+class CameraHud : LifecycleService() {
 
     companion object {
-        const val CHANNEL_ID = "CameraServiceChannel"
+        const val CHANNEL_ID = "CameraHudChannel"
         const val NOTIFICATION_ID = 2
         const val HUD_ACTION_NAME = "ACTION_SPEC"
 
         val ACTIONS = listOf(
             HudAction(
                 "BR",
-                android.R.drawable.ic_media_play,
-                VideoSpec(2.seconds, 5.seconds, DEFAULT_BACK_CAMERA)
+                R.drawable.ic_media_play,
+                VideoSpec(2.seconds, 7.seconds, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
                 "B3",
-                android.R.drawable.ic_media_rew,
-                PhotoSpec(3.seconds, 3, DEFAULT_BACK_CAMERA)
+                R.drawable.ic_media_rew,
+                PhotoSpec(1.seconds, 3, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
                 "B1",
-                android.R.drawable.ic_media_previous,
+                R.drawable.ic_media_previous,
                 PhotoSpec(3.seconds, 1, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
                 "F1",
-                android.R.drawable.ic_media_next,
+                R.drawable.ic_media_next,
                 PhotoSpec(3.seconds, 1, DEFAULT_FRONT_CAMERA)
             ),
             HudAction(
                 "F3",
-                android.R.drawable.ic_media_ff,
-                PhotoSpec(3.seconds, 3, DEFAULT_FRONT_CAMERA)
+                R.drawable.ic_media_ff,
+                PhotoSpec(1.seconds, 3, DEFAULT_FRONT_CAMERA)
             ),
         )
     }
@@ -63,7 +66,7 @@ class CameraService : LifecycleService() {
     override fun onCreate() {
         super.onCreate()
         createNotificationChannel()
-        cameraController = CameraController(applicationContext, getStorageDir("pics"))
+        cameraController = CameraController(applicationContext, prepStorageDir())
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
@@ -87,20 +90,10 @@ class CameraService : LifecycleService() {
         }
     }
 
-    private fun getStorageDir(albumName: String) = File(
-        getExternalFilesDir(
-            Environment.DIRECTORY_PICTURES
-        ), albumName
-    ).also {
-        if (!it.mkdirs()) {
-            debug("Directory not created")
-        }
-    }
-
     private fun onStart() {
         val notification = Notification.Builder(this, CHANNEL_ID)
             .setStyle(Notification.MediaStyle())
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(dev.cyberdeck.qs.R.drawable.ic_launcher_foreground)
             .setOngoing(true)
 
         ACTIONS.forEachIndexed { index, spec ->
@@ -123,20 +116,20 @@ class CameraService : LifecycleService() {
     private fun captureIntent(specName: String, requestCode: Int) = PendingIntent.getService(
         this,
         requestCode,
-        Intent(this, CameraService::class.java).apply {
+        Intent(this, CameraHud::class.java).apply {
             putExtra(HUD_ACTION_NAME, specName)
         },
         PendingIntent.FLAG_IMMUTABLE
     )
 
     private fun createNotificationChannel() {
-        val serviceChannel = NotificationChannel(
+        val hudChannel = NotificationChannel(
             CHANNEL_ID,
             "Snap UI",
             NotificationManager.IMPORTANCE_DEFAULT
         )
         val manager = getSystemService(NotificationManager::class.java)
-        manager.createNotificationChannel(serviceChannel)
+        manager.createNotificationChannel(hudChannel)
     }
 
     override fun onBind(intent: Intent): IBinder? {

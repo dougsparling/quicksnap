@@ -1,10 +1,9 @@
-package dev.cyberdeck.qs
+package dev.cyberdeck.qs.camera
 
 import android.content.Context
 import android.os.CombinedVibration
 import android.os.VibrationEffect
 import android.os.VibratorManager
-import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -20,6 +19,8 @@ import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.video.VideoRecordEvent.Finalize
 import androidx.camera.video.VideoRecordEvent.Start
+import dev.cyberdeck.qs.common.debug
+import dev.cyberdeck.qs.common.launchWithLifecycle
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

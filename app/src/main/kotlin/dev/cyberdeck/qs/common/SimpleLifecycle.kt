@@ -1,4 +1,4 @@
-package dev.cyberdeck.qs
+package dev.cyberdeck.qs.common
 
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner

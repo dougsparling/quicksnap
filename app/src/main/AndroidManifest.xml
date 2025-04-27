@@ -32,7 +32,7 @@
         </activity>
 
         <service
-            android:name="CameraService"
+            android:name=".camera.CameraHud"
             android:exported="false"
             android:foregroundServiceType="camera" />
     </application>

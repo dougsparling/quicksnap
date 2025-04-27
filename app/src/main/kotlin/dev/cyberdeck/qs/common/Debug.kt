@@ -1,4 +1,4 @@
-package dev.cyberdeck.qs
+package dev.cyberdeck.qs.common
 
 import android.os.Debug
 import android.util.Log
