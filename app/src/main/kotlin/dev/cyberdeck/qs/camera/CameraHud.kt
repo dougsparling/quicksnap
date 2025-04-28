@@ -34,29 +34,29 @@ class CameraHud : LifecycleService() {
 
         val ACTIONS = listOf(
             HudAction(
+                "B3",
+                R.drawable.ic_media_rew,
+                PhotoSpec(1.seconds, 3, DEFAULT_FRONT_CAMERA)
+            ),
+            HudAction(
+                "B1",
+                R.drawable.ic_media_previous,
+                PhotoSpec(3.seconds, 1, DEFAULT_FRONT_CAMERA)
+            ),
+            HudAction(
                 "BR",
                 R.drawable.ic_media_play,
                 VideoSpec(2.seconds, 7.seconds, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
-                "B3",
-                R.drawable.ic_media_rew,
-                PhotoSpec(1.seconds, 3, DEFAULT_BACK_CAMERA)
-            ),
-            HudAction(
-                "B1",
-                R.drawable.ic_media_previous,
-                PhotoSpec(3.seconds, 1, DEFAULT_BACK_CAMERA)
-            ),
-            HudAction(
                 "F1",
                 R.drawable.ic_media_next,
-                PhotoSpec(3.seconds, 1, DEFAULT_FRONT_CAMERA)
+                PhotoSpec(3.seconds, 1, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
                 "F3",
                 R.drawable.ic_media_ff,
-                PhotoSpec(1.seconds, 3, DEFAULT_FRONT_CAMERA)
+                PhotoSpec(1.seconds, 3, DEFAULT_BACK_CAMERA)
             ),
         )
     }
