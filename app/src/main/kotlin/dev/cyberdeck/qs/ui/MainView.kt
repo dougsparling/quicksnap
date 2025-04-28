@@ -1,16 +1,20 @@
 package dev.cyberdeck.qs.ui
 
+import android.widget.Toast
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.InsertChart
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
@@ -24,13 +28,21 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.cyberdeck.qs.R
 import dev.cyberdeck.qs.common.prepStorageDir
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,10 +57,27 @@ fun MainView() {
             ModalDrawerSheet(
                 modifier = Modifier.width(300.dp)
             ) {
+                Text(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    style = TextStyle(
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.Bold,
+                    ),
+                    textAlign = TextAlign.Center,
+                    text = stringResource(R.string.app_name),
+                )
                 Spacer(modifier = Modifier.weight(1f))
                 NavigationDrawerItem(
                     modifier = Modifier.padding(8.dp),
                     label = { Text(text = stringResource(R.string.home)) },
+                    icon = {
+                        Icon(
+                            Icons.Filled.Home,
+                            contentDescription = stringResource(R.string.home)
+                        )
+                    },
                     selected = current == NavState.HOME,
                     onClick = {
                         current = NavState.HOME
@@ -61,6 +90,12 @@ fun MainView() {
                 NavigationDrawerItem(
                     modifier = Modifier.padding(8.dp),
                     label = { Text(text = stringResource(R.string.stats)) },
+                    icon = {
+                        Icon(
+                            Icons.Filled.InsertChart,
+                            contentDescription = stringResource(R.string.home)
+                        )
+                    },
                     selected = current == NavState.STATS,
                     onClick = {
                         current = NavState.STATS
@@ -75,10 +110,24 @@ fun MainView() {
                 val context = LocalContext.current
                 NavigationDrawerItem(
                     label = { Text(text = stringResource(R.string.implode)) },
+                    icon = {
+                        Icon(
+                            Icons.Filled.LocalFireDepartment,
+                            contentDescription = stringResource(R.string.home)
+                        )
+                    },
                     selected = false,
                     onClick = {
                         scope.launch {
-                            context.prepStorageDir().deleteRecursively()
+                            val done = withContext(Dispatchers.IO) {
+                                context.prepStorageDir().deleteRecursively()
+                            }
+                            drawerState.close()
+                            Toast.makeText(
+                                context,
+                                context.getString(if (done) R.string.imploded else R.string.failed),
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
                     }
                 )
@@ -89,21 +138,25 @@ fun MainView() {
         Scaffold(
             topBar = {
                 TopAppBar(
+                    navigationIcon = {
+                        IconButton(onClick = {
+                            scope.launch {
+                                drawerState.apply {
+                                    if (isClosed) open() else close()
+                                }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Filled.Menu,
+                                contentDescription = ""
+                            )
+                        }
+                    },
                     title = { Text(text = stringResource(R.string.app_name)) }
                 )
             },
             floatingActionButton = {
-                ExtendedFloatingActionButton(
-                    text = { Text("Show drawer") },
-                    icon = { Icon(Icons.Filled.Add, contentDescription = "") },
-                    onClick = {
-                        scope.launch {
-                            drawerState.apply {
-                                if (isClosed) open() else close()
-                            }
-                        }
-                    }
-                )
+
             }
         ) { insets ->
             Box(
