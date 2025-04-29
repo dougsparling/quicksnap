@@ -15,10 +15,14 @@ import androidx.camera.video.Quality
 import androidx.camera.video.QualitySelector
 import androidx.camera.video.Recorder
 import androidx.camera.video.Recording
+import androidx.camera.video.RecordingStats
 import androidx.camera.video.VideoCapture
 import androidx.camera.video.VideoRecordEvent
 import androidx.camera.video.VideoRecordEvent.Finalize
 import androidx.camera.video.VideoRecordEvent.Start
+import androidx.camera.video.VideoRecordEvent.Status
+import com.google.common.util.concurrent.ListenableFuture
+import dev.cyberdeck.qs.common.Settings
 import dev.cyberdeck.qs.common.debug
 import dev.cyberdeck.qs.common.launchWithLifecycle
 import kotlinx.coroutines.CoroutineScope
@@ -30,6 +34,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -48,6 +53,7 @@ class CameraController(
     private val context: Context,
     private val directory: File,
 ) {
+    private val settings = Settings.get(context)
     private val executor = Executors.newSingleThreadExecutor()
     private val scope = CoroutineScope(executor.asCoroutineDispatcher() + SupervisorJob())
     private val vibrator = context.getSystemService(VibratorManager::class.java)
@@ -57,13 +63,17 @@ class CameraController(
         captureJob?.cancel()
         captureJob = scope.launchWithLifecycle { lifecycle ->
             val createProvider = async {
-                val provider = createCameraProvider()
+                val provider = ProcessCameraProvider.getInstance(context).await()
                 val capture = when (spec) {
                     is PhotoSpec -> quickJpgCapture()
                     is VideoSpec -> videoCapture()
                 }
                 withContext(Dispatchers.Main) {
-                    provider.bindToLifecycle(lifecycle, spec.camera, capture)
+                    val camera = provider.bindToLifecycle(lifecycle, spec.camera, capture)
+                    val desiredZoom = if(settings.wideAngle().first()) 0.5f else 1.0f
+                    val minZoom = spec.camera.filter(provider.availableCameraInfos).first().zoomState.value?.minZoomRatio ?: 1.0f
+                    debug("desire zoom $desiredZoom and min zoom is $minZoom")
+                    camera.cameraControl.setZoomRatio(maxOf(minZoom, desiredZoom)).await()
                 }
                 provider to capture
             }
@@ -116,17 +126,17 @@ class CameraController(
 
         for (event in events) {
             when (event) {
-                is VideoRecordEvent.Status -> {
-                    debug("Recorded ${event.recordingStats.numBytesRecorded} bytes over ${event.recordingStats.recordedDurationNanos.nanoseconds.inWholeMilliseconds} millis")
-                }
-
                 is Start -> {
                     stop = stop ?: launch {
                         delay(spec.duration)
-                        debug("calling stop()")
+                        debug("calling recorder.stop()")
                         recorder.stop()
                         buzz(100, 150)
                     }
+                }
+
+                is Status -> {
+                    debug("Recording: ${event.recordingStats.summarize()}")
                 }
 
                 is Finalize -> {
@@ -137,7 +147,6 @@ class CameraController(
 
         // just in case we stopped early
         stop?.cancel()
-
         debug("Recorded video to ${file.absolutePath}")
     }
 
@@ -166,9 +175,22 @@ class CameraController(
         return File(directory, "$name.$ext")
     }
 
-    private suspend fun createCameraProvider() = suspendCoroutine<ProcessCameraProvider> { cont ->
-        val instance = ProcessCameraProvider.getInstance(context)
-        instance.addListener({ cont.resumeWith(runCatching { instance.get() }) }, executor)
+    private suspend fun <T> ListenableFuture<T>.await() = suspendCoroutine<T> { cont ->
+        addListener({ cont.resumeWith(runCatching { this.get() }) }, executor)
+    }
+
+    // only works if device exposes physical camera to API, otherwise need to use setZoomRatio
+    private suspend fun ProcessCameraProvider.selectCamera(
+        spec: CaptureSpec
+    ): CameraSelector {
+        val selector = if (settings.wideAngle().first()) {
+            // try and select a wide angle lens, otherwise just use selector for facing
+            val cameras = spec.camera.filter(availableCameraInfos)
+            cameras.firstOrNull { it.intrinsicZoomRatio < 1.0 }?.cameraSelector ?: spec.camera
+        } else {
+            spec.camera
+        }
+        return selector
     }
 
     private suspend fun ImageCapture.takePicture(
@@ -195,6 +217,9 @@ class CameraController(
         }
         return events to recorder
     }
+
+    private fun RecordingStats.summarize() =
+        "$numBytesRecorded bytes over ${recordedDurationNanos.nanoseconds.inWholeMilliseconds}ms"
 
     private suspend fun buzz(vararg timingsMs: Long) {
         for (timingMs in timingsMs) {

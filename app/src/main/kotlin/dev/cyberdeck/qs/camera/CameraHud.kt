@@ -93,7 +93,7 @@ class CameraHud : LifecycleService() {
     private fun onStart() {
         val notification = Notification.Builder(this, CHANNEL_ID)
             .setStyle(Notification.MediaStyle())
-            .setSmallIcon(dev.cyberdeck.qs.R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_menu_gallery)
             .setOngoing(true)
 
         ACTIONS.forEachIndexed { index, spec ->
@@ -128,6 +128,7 @@ class CameraHud : LifecycleService() {
             "Snap UI",
             NotificationManager.IMPORTANCE_DEFAULT
         )
+        hudChannel.importance = NotificationManager.IMPORTANCE_MAX
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(hudChannel)
     }
