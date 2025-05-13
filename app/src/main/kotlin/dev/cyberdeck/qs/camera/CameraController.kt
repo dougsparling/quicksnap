@@ -161,8 +161,8 @@ class CameraController(
         Recorder.Builder()
             .setQualitySelector(
                 QualitySelector.from(
-                    Quality.FHD,
-                    FallbackStrategy.lowerQualityThan(Quality.FHD)
+                    Quality.UHD,
+                    FallbackStrategy.higherQualityOrLowerThan(Quality.HIGHEST)
                 )
             )
             .setExecutor(executor)

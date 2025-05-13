@@ -39,19 +39,14 @@ class CameraHud : LifecycleService() {
                 PhotoSpec(1.seconds, 3, DEFAULT_FRONT_CAMERA)
             ),
             HudAction(
-                "B1",
-                R.drawable.ic_media_previous,
-                PhotoSpec(3.seconds, 1, DEFAULT_FRONT_CAMERA)
+                "FR",
+                R.drawable.ic_media_pause,
+                VideoSpec(2.seconds, 10.seconds, DEFAULT_FRONT_CAMERA)
             ),
             HudAction(
                 "BR",
                 R.drawable.ic_media_play,
-                VideoSpec(2.seconds, 7.seconds, DEFAULT_BACK_CAMERA)
-            ),
-            HudAction(
-                "F1",
-                R.drawable.ic_media_next,
-                PhotoSpec(3.seconds, 1, DEFAULT_BACK_CAMERA)
+                VideoSpec(2.seconds, 10.seconds, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
                 "F3",
