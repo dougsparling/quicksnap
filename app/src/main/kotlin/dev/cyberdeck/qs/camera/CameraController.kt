@@ -77,13 +77,12 @@ class CameraController(
                     is PhotoSpec -> quickJpgCapture()
                     is VideoSpec -> videoCapture()
                 }
-                withContext(Dispatchers.Main) {
-                    val camera = provider.bindToLifecycle(lifecycle, spec.camera, capture)
-                    val cameraInfo = spec.camera.filter(provider.availableCameraInfos).first()
-
-                    camera.setMaxFps(cameraInfo)
-                    camera.setZoomRatio(cameraInfo)
+                val camera = withContext(Dispatchers.Main) {
+                    provider.bindToLifecycle(lifecycle, spec.camera, capture)
                 }
+                val cameraInfo = spec.camera.filter(provider.availableCameraInfos).first()
+                camera.setMaxFps(cameraInfo)
+                camera.setZoomRatio(cameraInfo)
                 provider to capture
             }
 
@@ -189,7 +188,7 @@ class CameraController(
     }
 
     @OptIn(ExperimentalCamera2Interop::class)
-    private fun Camera.setMaxFps(cameraInfo: CameraInfo) {
+    private suspend fun Camera.setMaxFps(cameraInfo: CameraInfo) {
         val supportedFpsRanges = Camera2CameraInfo.from(cameraInfo).getCameraCharacteristic(
             CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES
         )
@@ -200,7 +199,7 @@ class CameraController(
             CaptureRequestOptions.Builder()
                 .setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, max)
                 .build()
-        )
+        ).await()
     }
 
     private suspend fun Camera.setZoomRatio(
