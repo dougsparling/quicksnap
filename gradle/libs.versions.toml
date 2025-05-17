@@ -42,6 +42,7 @@ androidx-camera-camera2 = { group = "androidx.camera", name = "camera-camera2", 
 androidx-camera-lifecycle = { group = "androidx.camera", name = "camera-lifecycle", version.ref = "cameraLifecycle" }
 androidx-camera-viewfinder = { group = "androidx.camera", name = "camera-viewfinder", version.ref = "cameraViewfinder" }
 androidx-camera-video = { group = "androidx.camera", name = "camera-video", version.ref = "cameraVideo" }
+androidx-camera-ext = { group = "androidx.camera", name = "camera-extensions", version.ref = "cameraVideo" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

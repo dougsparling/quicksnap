@@ -57,6 +57,7 @@ dependencies {
     implementation(libs.androidx.camera.viewfinder)
     implementation(libs.androidx.lifecycle.service)
     implementation(libs.androidx.camera.video)
+    implementation(libs.androidx.camera.ext)
 
     // Compose + Compose UI
     implementation(platform(libs.androidx.compose.bom))

@@ -2,7 +2,6 @@ package dev.cyberdeck.qs.ui
 
 import android.widget.Toast
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -21,12 +20,10 @@ import androidx.compose.material3.ModalDrawerSheet
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -41,7 +38,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.cyberdeck.qs.R
-import dev.cyberdeck.qs.common.Settings
 import dev.cyberdeck.qs.common.prepStorageDir
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -198,23 +194,7 @@ fun MainView() {
     }
 }
 
-@Composable
-fun SettingsView() {
-    val context = LocalContext.current
-    val settings = remember(context) { Settings.get(context) }
-    val wideAngle by settings.wideAngle().collectAsState(false)
-    val scope = rememberCoroutineScope()
 
-    Column {
-        Text("Wide Angle Lens")
-        Switch(
-            checked = wideAngle,
-            onCheckedChange = {
-                scope.launch { settings.toggleWideAngle() }
-            }
-        )
-    }
-}
 
 
 enum class NavState {

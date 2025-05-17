@@ -16,6 +16,8 @@ import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
+import androidx.camera.extensions.ExtensionMode
+import androidx.camera.extensions.ExtensionsManager
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.camera.video.FallbackStrategy
 import androidx.camera.video.FileOutputOptions
@@ -77,12 +79,15 @@ class CameraController(
                     is PhotoSpec -> quickJpgCapture()
                     is VideoSpec -> videoCapture()
                 }
+                val cameraWithExt = applyExtensionSettings(provider, spec)
+
                 val camera = withContext(Dispatchers.Main) {
-                    provider.bindToLifecycle(lifecycle, spec.camera, capture)
+                    provider.bindToLifecycle(lifecycle, cameraWithExt, capture)
                 }
-                val cameraInfo = spec.camera.filter(provider.availableCameraInfos).first()
+                val cameraInfo = cameraWithExt.filter(provider.availableCameraInfos).first()
                 camera.setMaxFps(cameraInfo)
                 camera.setZoomRatio(cameraInfo)
+
                 provider to capture
             }
 
@@ -99,6 +104,24 @@ class CameraController(
                 provider.unbindAll()
             }
         }
+    }
+
+    private suspend fun applyExtensionSettings(
+        provider: ProcessCameraProvider,
+        spec: CaptureSpec
+    ): CameraSelector {
+        val mode = settings.mode().first()
+        if (mode == ExtensionMode.NONE) {
+            return spec.camera
+        }
+
+        val extMgr = ExtensionsManager.getInstanceAsync(context, provider).await()
+        if (!extMgr.isExtensionAvailable(spec.camera, mode)) {
+            debug("failed to apply desired extension setting: $mode")
+            return spec.camera
+        }
+
+        return extMgr.getExtensionEnabledCameraSelector(spec.camera, mode)
     }
 
     private suspend fun capturePhoto(
@@ -280,5 +303,3 @@ class CameraController(
         camera: CameraSelector,
     ) : CaptureSpec(delay, camera)
 }
-
-
