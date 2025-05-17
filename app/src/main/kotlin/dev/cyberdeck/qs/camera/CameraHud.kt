@@ -10,7 +10,6 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
 import android.graphics.drawable.Icon
-import android.os.Environment
 import android.os.IBinder
 import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
@@ -22,7 +21,6 @@ import dev.cyberdeck.qs.camera.CameraController.PhotoSpec
 import dev.cyberdeck.qs.camera.CameraController.VideoSpec
 import dev.cyberdeck.qs.common.debug
 import dev.cyberdeck.qs.common.prepStorageDir
-import java.io.File
 import kotlin.time.Duration.Companion.seconds
 
 class CameraHud : LifecycleService() {

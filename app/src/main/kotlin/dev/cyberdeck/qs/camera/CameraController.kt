@@ -1,9 +1,18 @@
 package dev.cyberdeck.qs.camera
 
 import android.content.Context
+import android.hardware.camera2.CameraCharacteristics
+import android.hardware.camera2.CaptureRequest
 import android.os.CombinedVibration
 import android.os.VibrationEffect
 import android.os.VibratorManager
+import androidx.annotation.OptIn
+import androidx.camera.camera2.interop.Camera2CameraControl
+import androidx.camera.camera2.interop.Camera2CameraInfo
+import androidx.camera.camera2.interop.CaptureRequestOptions
+import androidx.camera.camera2.interop.ExperimentalCamera2Interop
+import androidx.camera.core.Camera
+import androidx.camera.core.CameraInfo
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageCapture
 import androidx.camera.core.ImageCaptureException
@@ -70,10 +79,10 @@ class CameraController(
                 }
                 withContext(Dispatchers.Main) {
                     val camera = provider.bindToLifecycle(lifecycle, spec.camera, capture)
-                    val desiredZoom = if(settings.wideAngle().first()) 0.5f else 1.0f
-                    val minZoom = spec.camera.filter(provider.availableCameraInfos).first().zoomState.value?.minZoomRatio ?: 1.0f
-                    debug("desire zoom $desiredZoom and min zoom is $minZoom")
-                    camera.cameraControl.setZoomRatio(maxOf(minZoom, desiredZoom)).await()
+                    val cameraInfo = spec.camera.filter(provider.availableCameraInfos).first()
+
+                    camera.setMaxFps(cameraInfo)
+                    camera.setZoomRatio(cameraInfo)
                 }
                 provider to capture
             }
@@ -177,6 +186,30 @@ class CameraController(
 
     private suspend fun <T> ListenableFuture<T>.await() = suspendCoroutine<T> { cont ->
         addListener({ cont.resumeWith(runCatching { this.get() }) }, executor)
+    }
+
+    @OptIn(ExperimentalCamera2Interop::class)
+    private fun Camera.setMaxFps(cameraInfo: CameraInfo) {
+        val supportedFpsRanges = Camera2CameraInfo.from(cameraInfo).getCameraCharacteristic(
+            CameraCharacteristics.CONTROL_AE_AVAILABLE_TARGET_FPS_RANGES
+        )
+        // highest min fps
+        val max = supportedFpsRanges?.maxBy { range -> range.lower }!!
+        val camera2Control = Camera2CameraControl.from(cameraControl)
+        camera2Control.setCaptureRequestOptions(
+            CaptureRequestOptions.Builder()
+                .setCaptureRequestOption(CaptureRequest.CONTROL_AE_TARGET_FPS_RANGE, max)
+                .build()
+        )
+    }
+
+    private suspend fun Camera.setZoomRatio(
+        cameraInfo: CameraInfo,
+    ) {
+        val desiredZoom = if (settings.wideAngle().first()) 0.5f else 1.0f
+        val minZoom = cameraInfo.zoomState.value?.minZoomRatio ?: 1.0f
+        debug("desire zoom $desiredZoom and min zoom is $minZoom")
+        cameraControl.setZoomRatio(maxOf(minZoom, desiredZoom)).await()
     }
 
     // only works if device exposes physical camera to API, otherwise need to use setZoomRatio
