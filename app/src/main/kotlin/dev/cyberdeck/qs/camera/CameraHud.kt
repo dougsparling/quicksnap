@@ -1,7 +1,6 @@
 package dev.cyberdeck.qs.camera
 
 import android.Manifest
-import android.R
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -16,6 +15,7 @@ import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.LifecycleService
+import dev.cyberdeck.qs.R
 import dev.cyberdeck.qs.camera.CameraController.CaptureSpec
 import dev.cyberdeck.qs.camera.CameraController.PhotoSpec
 import dev.cyberdeck.qs.camera.CameraController.VideoSpec
@@ -32,23 +32,23 @@ class CameraHud : LifecycleService() {
 
         val ACTIONS = listOf(
             HudAction(
-                "B3",
-                R.drawable.ic_media_rew,
+                "F3",
+                R.drawable.keyboard_arrow_down,
                 PhotoSpec(1.seconds, 3, DEFAULT_FRONT_CAMERA)
             ),
             HudAction(
                 "FR",
-                R.drawable.ic_media_pause,
+                R.drawable.vertical_align_bottom,
                 VideoSpec(2.seconds, 10.seconds, DEFAULT_FRONT_CAMERA)
             ),
             HudAction(
                 "BR",
-                R.drawable.ic_media_play,
+                R.drawable.vertical_align_top,
                 VideoSpec(2.seconds, 10.seconds, DEFAULT_BACK_CAMERA)
             ),
             HudAction(
-                "F3",
-                R.drawable.ic_media_ff,
+                "B3",
+                R.drawable.keyboard_arrow_up,
                 PhotoSpec(1.seconds, 3, DEFAULT_BACK_CAMERA)
             ),
         )
@@ -86,7 +86,7 @@ class CameraHud : LifecycleService() {
     private fun onStart() {
         val notification = Notification.Builder(this, CHANNEL_ID)
             .setStyle(Notification.MediaStyle())
-            .setSmallIcon(R.drawable.ic_menu_gallery)
+            .setSmallIcon(android.R.drawable.ic_menu_gallery)
             .setOngoing(true)
 
         ACTIONS.forEachIndexed { index, spec ->
@@ -121,7 +121,7 @@ class CameraHud : LifecycleService() {
             "Snap UI",
             NotificationManager.IMPORTANCE_DEFAULT
         )
-        hudChannel.importance = NotificationManager.IMPORTANCE_MAX
+        hudChannel.importance = NotificationManager.IMPORTANCE_HIGH
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(hudChannel)
     }
