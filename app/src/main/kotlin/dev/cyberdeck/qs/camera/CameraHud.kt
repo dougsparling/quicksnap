@@ -118,10 +118,9 @@ class CameraHud : LifecycleService() {
     private fun createNotificationChannel() {
         val hudChannel = NotificationChannel(
             CHANNEL_ID,
-            "Snap UI",
-            NotificationManager.IMPORTANCE_DEFAULT
+            "QuickSnap UI",
+            NotificationManager.IMPORTANCE_HIGH
         )
-        hudChannel.importance = NotificationManager.IMPORTANCE_HIGH
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(hudChannel)
     }
