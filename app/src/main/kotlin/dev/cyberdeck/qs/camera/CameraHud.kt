@@ -10,6 +10,8 @@ import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
 import android.graphics.drawable.Icon
 import android.os.IBinder
+import android.view.View
+import android.widget.RemoteViews
 import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
@@ -52,6 +54,14 @@ class CameraHud : LifecycleService() {
                 PhotoSpec(1.seconds, 3, DEFAULT_BACK_CAMERA)
             ),
         )
+
+        val BUTTON_BINDINGS = listOf(
+            R.id.action_button_1,
+            R.id.action_button_2,
+            R.id.action_button_3,
+            R.id.action_button_4,
+            R.id.action_button_5
+        )
     }
 
     private lateinit var cameraController: CameraController
@@ -84,19 +94,22 @@ class CameraHud : LifecycleService() {
     }
 
     private fun onStart() {
+        val remoteViews = RemoteViews(packageName, R.layout.custom_notification_layout)
+
         val notification = Notification.Builder(this, CHANNEL_ID)
-            .setStyle(Notification.MediaStyle())
-            .setSmallIcon(android.R.drawable.ic_menu_gallery)
+            .setStyle(Notification.DecoratedCustomViewStyle())
+            .setCustomContentView(remoteViews)
+            .setSmallIcon(android.R.drawable.ic_menu_gallery) // Still need a small icon for the status bar
             .setOngoing(true)
 
-        ACTIONS.forEachIndexed { index, spec ->
-            notification.addAction(
-                Notification.Action.Builder(
-                    Icon.createWithResource("", spec.icon),
-                    spec.name,
-                    captureIntent(spec.name, index)
-                ).build()
-            )
+        BUTTON_BINDINGS.forEachIndexed { index, binding ->
+            when (val action = ACTIONS.getOrNull(index)) {
+                null -> remoteViews.setViewVisibility(binding, View.GONE)
+                else -> {
+                    remoteViews.setImageViewResource(binding, action.icon)
+                    remoteViews.setOnClickPendingIntent(binding, captureIntent(action.name, index))
+                }
+            }
         }
 
         startForeground(
@@ -119,7 +132,7 @@ class CameraHud : LifecycleService() {
         val hudChannel = NotificationChannel(
             CHANNEL_ID,
             "QuickSnap UI",
-            NotificationManager.IMPORTANCE_HIGH
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         val manager = getSystemService(NotificationManager::class.java)
         manager.createNotificationChannel(hudChannel)
