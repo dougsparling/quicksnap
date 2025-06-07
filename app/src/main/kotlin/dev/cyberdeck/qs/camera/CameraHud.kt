@@ -100,6 +100,7 @@ class CameraHud : LifecycleService() {
             .setStyle(Notification.DecoratedCustomViewStyle())
             .setCustomContentView(remoteViews)
             .setSmallIcon(android.R.drawable.ic_menu_gallery) // Still need a small icon for the status bar
+            .setVisibility(Notification.VISIBILITY_PUBLIC)
             .setOngoing(true)
 
         BUTTON_BINDINGS.forEachIndexed { index, binding ->
