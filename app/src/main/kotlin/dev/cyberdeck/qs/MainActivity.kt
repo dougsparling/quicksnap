@@ -16,17 +16,24 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val serviceIntent = Intent(this, CameraHud::class.java)
-        startForegroundService(serviceIntent)
-
-        setContent {
-            val colorScheme = when {
-                isSystemInDarkTheme() -> dynamicDarkColorScheme(LocalContext.current)
-                else -> dynamicLightColorScheme(LocalContext.current)
+        if (intent.hasExtra(CameraHud.HUD_ACTION_NAME)) {
+            val serviceIntent = Intent(this, CameraHud::class.java).apply {
+                putExtras(intent)
             }
+            startForegroundService(serviceIntent)
+        } else {
+            val serviceIntent = Intent(this, CameraHud::class.java)
+            startForegroundService(serviceIntent)
 
-            MaterialTheme(colorScheme = colorScheme) {
-                MainView()
+            setContent {
+                val colorScheme = when {
+                    isSystemInDarkTheme() -> dynamicDarkColorScheme(LocalContext.current)
+                    else -> dynamicLightColorScheme(LocalContext.current)
+                }
+
+                MaterialTheme(colorScheme = colorScheme) {
+                    MainView()
+                }
             }
         }
     }

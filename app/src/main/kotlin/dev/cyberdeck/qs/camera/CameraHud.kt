@@ -8,7 +8,6 @@ import android.app.PendingIntent
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_CAMERA
-import android.graphics.drawable.Icon
 import android.os.IBinder
 import android.view.View
 import android.widget.RemoteViews
@@ -16,7 +15,11 @@ import androidx.annotation.DrawableRes
 import androidx.camera.core.CameraSelector.DEFAULT_BACK_CAMERA
 import androidx.camera.core.CameraSelector.DEFAULT_FRONT_CAMERA
 import androidx.core.app.ActivityCompat
+import androidx.core.content.pm.ShortcutInfoCompat
+import androidx.core.content.pm.ShortcutManagerCompat
+import androidx.core.graphics.drawable.IconCompat
 import androidx.lifecycle.LifecycleService
+import dev.cyberdeck.qs.MainActivity
 import dev.cyberdeck.qs.R
 import dev.cyberdeck.qs.camera.CameraController.CaptureSpec
 import dev.cyberdeck.qs.camera.CameraController.PhotoSpec
@@ -94,6 +97,28 @@ class CameraHud : LifecycleService() {
     }
 
     private fun onStart() {
+        createNotification()
+        createDynamicActions()
+    }
+
+    private fun createDynamicActions() {
+        ACTIONS.forEach { action ->
+            val shortcut = ShortcutInfoCompat.Builder(this, action.name)
+                .setShortLabel(action.name)
+                .setIcon(IconCompat.createWithResource(this, action.icon))
+                .setIntent(
+                    Intent(this, MainActivity::class.java).apply {
+                        setAction(Intent.ACTION_VIEW)
+                        putExtra(HUD_ACTION_NAME, action.name)
+                    }
+                )
+                .build()
+
+            ShortcutManagerCompat.pushDynamicShortcut(this, shortcut)
+        }
+    }
+
+    private fun createNotification() {
         val remoteViews = RemoteViews(packageName, R.layout.custom_notification_layout)
 
         val notification = Notification.Builder(this, CHANNEL_ID)
@@ -120,11 +145,11 @@ class CameraHud : LifecycleService() {
         )
     }
 
-    private fun captureIntent(specName: String, requestCode: Int) = PendingIntent.getService(
+    private fun captureIntent(actionName: String, requestCode: Int) = PendingIntent.getService(
         this,
         requestCode,
         Intent(this, CameraHud::class.java).apply {
-            putExtra(HUD_ACTION_NAME, specName)
+            putExtra(HUD_ACTION_NAME, actionName)
         },
         PendingIntent.FLAG_IMMUTABLE
     )
