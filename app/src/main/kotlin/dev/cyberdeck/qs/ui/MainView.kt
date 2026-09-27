@@ -31,6 +31,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalResources
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -107,6 +108,7 @@ fun MainView() {
                 Spacer(modifier = Modifier.weight(1f))
 
                 val context = LocalContext.current
+                val resources = LocalResources.current
                 NavigationDrawerItem(
                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                     label = { Text(text = stringResource(R.string.implode)) },
@@ -125,7 +127,7 @@ fun MainView() {
                             drawerState.close()
                             Toast.makeText(
                                 context,
-                                context.getString(if (done) R.string.imploded else R.string.failed),
+                                resources.getString(if (done) R.string.imploded else R.string.failed),
                                 Toast.LENGTH_SHORT
                             ).show()
                         }
