@@ -47,9 +47,10 @@ cmd_start() {
   if pgrep -x qemu-system-x86 >/dev/null; then echo "already running"; return; fi
   # Free RAM for the emulator; idle Gradle and Kotlin daemons use several GB.
   (cd "$(dirname "$0")/.." && ./gradlew --stop >/dev/null 2>&1) || true
-  # -writable-system keeps the build.prop edit below across boots.
-  (cd ~ && nohup "$EMULATOR" -avd "$AVD" -accel off -no-window -no-audio \
-    -gpu swiftshader_indirect -no-snapshot -no-boot-anim -writable-system > "$LOG" 2>&1 &)
+  # -writable-system keeps the build.prop edit below across boots. Redirect the
+  # whole subshell so it doesn't hold the caller's stdout open (e.g. `start | grep` hangs).
+  (cd ~ && exec nohup "$EMULATOR" -avd "$AVD" -accel off -no-window -no-audio \
+    -gpu swiftshader_indirect -no-snapshot -no-boot-anim -writable-system) > "$LOG" 2>&1 < /dev/null &
   echo "booting (software mode, this is slow)..."
   $ADB wait-for-device
   wait_boot
@@ -81,6 +82,7 @@ cmd_install() {
   # The app expects its permissions granted before launch (see README).
   local apk
   apk="$(dirname "$0")/../app/build/outputs/apk/debug/app-debug.apk"
+  # Under TCG with the guest busy, install alone can take several minutes.
   $ADB install -r "$apk"
   $ADB shell pm grant $PKG android.permission.CAMERA
   $ADB shell pm grant $PKG android.permission.POST_NOTIFICATIONS
