@@ -38,3 +38,7 @@ Keep lint clean: there is no lint baseline, so any lint error fails CI.
   - Force-stop and relaunch after install: a slow install can clear the foreground
     service notification if the app was already running.
   - `./gradlew --stop` before boot to free RAM for the emulator.
+- Expect it to be slow even once booted: ~6 min for `adb install`, ~10 min until the
+  foreground notification is posted, and SystemUI can take a minute to draw the shade
+  after `cmd statusbar expand-notifications`. Check state with `dumpsys` before
+  trusting a screenshot, and retake it if the shade looks half-drawn.
